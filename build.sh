@@ -107,6 +107,7 @@ echo -e "\n${YELLOW}[3/7] Configurando para i686 con ncursesw...${NC}"
     --disable-extra \
     --enable-nanorc \
     --enable-utf8 \
+    --with-ncursesw \
     CFLAGS="-m32 -Os -pipe" \
     LDFLAGS="-m32"
 

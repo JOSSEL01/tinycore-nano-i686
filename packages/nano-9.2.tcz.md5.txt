@@ -1,1 +1,1 @@
-c9c90c8b22e00518f88924f8d8960d9f  nano-9.2.tcz
+1cc6ef23c54a7b1f8ee80af68f8127b8  nano-9.2.tcz
