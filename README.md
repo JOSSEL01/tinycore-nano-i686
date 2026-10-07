@@ -60,12 +60,19 @@ Deberías ver: `GNU nano, version 9.2`
 ## 🔧 Instalación manual
 
 1. Descarga `nano-9.2.tcz` desde la carpeta [`packages/`](packages/).
-2. Cópialo a `/etc/sysconfig/tcedir/optional/` en tu Tiny Core.
+2. Cópialo a `/mnt/sda(_)/tce/optional/` en tu Tiny Core.
 3. Ejecuta:
    ```bash
    tce-load -i nano-9.2
    ```
-4. Verifica:
+
+4. Colocar en Onboot
+   ```nano /etc/sysconfig/tcedir/onboot.lst
+
+   Ir hasta la parte final del archivo y poner node-v20.19.2.tcz y con las teclas ctrl + o luego enter luego ctrl + x y ya estaria
+   ```
+   
+5. Verifica:
    ```bash
    nano --version
    ```
