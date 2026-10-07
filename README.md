@@ -48,7 +48,7 @@ Desde la terminal de tu Tiny Core:
 
 ```bash
 wget https://github.com/JOSSEL01/tinycore-nano-i686/raw/main/packages/nano-9.2.tcz
-sudo mv nano-9.2.tcz /etc/sysconfig/tcedir/optional/
+sudo mv nano-9.2.tcz /mnt/sda(_)/tce/optional/
 tce-load -i nano-9.2
 nano --version
 ```
@@ -60,12 +60,17 @@ Deberías ver: `GNU nano, version 9.2`
 ## 🔧 Instalación manual
 
 1. Descarga `nano-9.2.tcz` desde la carpeta `packages/`.
-2. Cópialo a `/etc/sysconfig/tcedir/optional/` en tu Tiny Core.
+2. Cópialo a `/mnt/sda(_)/tce/optional/` en tu Tiny Core.
 3. Ejecuta:
    ```bash
    tce-load -i nano-9.2
    ```
-4. Verifica:
+4. Colocar en Onboot:
+   nano /etc/sysconfig/tcedir/onboot.lst
+
+   Ir hasta la parte final del archivo y poner nano-9.2.tcz y con las teclas ctrl + o luego enter luego ctrl + x y ya estaria
+   
+5. Verifica:
    ```bash
    nano --version
    ```
