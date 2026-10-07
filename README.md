@@ -69,7 +69,7 @@ Deberías ver: `GNU nano, version 9.2`
 4. Colocar en Onboot:
    nano /etc/sysconfig/tcedir/onboot.lst
 
-   Ir hasta la parte final del archivo y poner node-v20.19.2.tcz y con las teclas ctrl + o luego enter luego ctrl + x y ya estaria
+   Ir hasta la parte final del archivo y poner nano-9.2.tcz y con las teclas ctrl + o luego enter luego ctrl + x y ya estaria
    
 5. Verifica:
    ```bash
