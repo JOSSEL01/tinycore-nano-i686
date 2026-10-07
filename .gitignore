@@ -1,0 +1,11 @@
+# Archivos de compilación
+nano-build/
+*.tar.xz
+*.tar.gz
+out/
+
+# Archivos temporales
+*.o
+*.a
+*.so
+*.tmp
