@@ -1,0 +1,11 @@
+Title:          nano.tcz
+Description:    GNU nano text editor (v9.2)
+Version:        9.2
+Author:         GNU nano Team
+Original-site:  https://www.nano-editor.org
+Copying-policy: GPLv3
+Size:           3,1M
+Extension_by:   Jose Andres Mamani Mollericona
+Comments:       Compilado para i686 (github.com/JOSSEL01)
+Change-log:     Compilado manualmente
+Current:        2026-10-06
