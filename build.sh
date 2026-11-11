@@ -105,25 +105,48 @@ make -j$(nproc)
 # [6/8] INSTALAR, ESTRIBAR Y CREAR ENLACES
 # ============================================
 echo -e "\n${YELLOW}[6/8] Instalando, estripando y creando enlaces...${NC}"
+
+# 1. Limpieza profunda: Borrar cualquier rastro de compilaciones anteriores
 rm -rf "$PACKAGE_DIR"
+mkdir -p "$PACKAGE_DIR"
+
+# 2. Instalar en el directorio temporal
 make install-strip DESTDIR="$PACKAGE_DIR"
 
+# 3. Copiar el archivo de configuración de ejemplo
 mkdir -p "$PACKAGE_DIR/usr/local/share/nano"
 cp doc/sample.nanorc "$PACKAGE_DIR/usr/local/share/nano/nanorc" 2>/dev/null || true
 
+# 4. Estripar (limpiar) el binario principal y cualquier otra librería ELF
 if [ -f "$PACKAGE_DIR/usr/local/bin/nano" ]; then
     strip "$PACKAGE_DIR/usr/local/bin/nano"
 fi
 find "$PACKAGE_DIR" -type f -exec file {} \; 2>/dev/null | grep 'ELF' | awk -F: '{print $1}' | xargs strip 2>/dev/null || true
 
-# --- SOLUCIÓN DEFINITIVA PARA TINY CORE ---
-# Crear el enlace en /usr/lib (donde el cargador dinámico busca por defecto)
+# 5. Crear los enlaces mágicos para Tiny Core
+# (Creamos los enlaces en /usr/lib y también aseguramos que /usr/local/lib los tenga)
 mkdir -p "$PACKAGE_DIR/usr/lib"
+mkdir -p "$PACKAGE_DIR/usr/local/lib"
+
+# Enlace en /usr/lib (el que solucionó el problema de libtinfo)
 cd "$PACKAGE_DIR/usr/lib"
 ln -sf /usr/local/lib/libncursesw.so.6 libtinfo.so.6
 ln -sf /usr/local/lib/libncursesw.so.6 libncurses.so.6
+
+# Enlace en /usr/local/lib (por si acaso)
+cd "$PACKAGE_DIR/usr/local/lib"
+ln -sf libncursesw.so.6 libtinfo.so.6
+ln -sf libncursesw.so.6 libncurses.so.6
+
 cd - > /dev/null
-# ------------------------------------------
+
+# 6. Verificar que el binario de nano quedó en el lugar correcto
+if [ ! -f "$PACKAGE_DIR/usr/local/bin/nano" ]; then
+    echo -e "${RED}¡ADVERTENCIA! El binario de nano no se instaló en /usr/local/bin/${NC}"
+    echo -e "${YELLOW}Buscando dónde se instaló...${NC}"
+    find "$PACKAGE_DIR" -name "nano" -type f
+fi
+# ============================================
 
 # ============================================
 # [7/8] CREAR METADATOS
