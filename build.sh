@@ -37,8 +37,8 @@ LATEST_DIR=$(wget -qO- https://www.nano-editor.org/dist/ | grep -oP 'v\K[0-9]+' 
 LATEST_VERSION=$(wget -qO- "https://www.nano-editor.org/dist/v${LATEST_DIR}/" | grep -oP 'nano-\K[0-9]+\.[0-9]+(?=\.tar\.xz)' | sort -V | tail -n 1)
 
 if [ -z "$LATEST_VERSION" ]; then
-    echo -e "${RED}Error: No se pudo obtener la versión. Usando 9.2 por defecto.${NC}"
-    NANO_VERSION="9.2"
+    echo -e "${RED}Error: No se pudo obtener la versión. Usando 9.3 por defecto.${NC}"
+    NANO_VERSION="9.3"
 else
     NANO_VERSION="$LATEST_VERSION"
 fi
@@ -106,26 +106,36 @@ make -j$(nproc)
 # ============================================
 echo -e "\n${YELLOW}[6/8] Instalando, estripando y creando enlaces...${NC}"
 
-rm -rf "$PACKAGE_DIR"
+# 1. BORRADO AGRESIVO (Elimina las carpetas raras /usr_1, /usr_2)
+$SUDO rm -rf "$PACKAGE_DIR"
 mkdir -p "$PACKAGE_DIR"
+
+# 2. Instalar en el directorio temporal
 make install-strip DESTDIR="$PACKAGE_DIR"
 
-# Copiar nanorc
+# 3. Copiar el archivo de configuración de ejemplo
 mkdir -p "$PACKAGE_DIR/usr/local/share/nano"
 cp doc/sample.nanorc "$PACKAGE_DIR/usr/local/share/nano/nanorc" 2>/dev/null || true
 
-# Estripar
+# 4. Estripar (limpiar) el binario principal y cualquier otra librería ELF
 if [ -f "$PACKAGE_DIR/usr/local/bin/nano" ]; then
     strip "$PACKAGE_DIR/usr/local/bin/nano"
 fi
 find "$PACKAGE_DIR" -type f -exec file {} \; 2>/dev/null | grep 'ELF' | awk -F: '{print $1}' | xargs strip 2>/dev/null || true
 
-# --- SOLUCIÓN DEFINITIVA: Enlace en /usr/lib ---
-# Creamos el enlace en /usr/lib dentro del paquete, apuntando a la librería del sistema
+# 5. Crear los enlaces mágicos para Tiny Core
+# Creamos los enlaces en /usr/lib (donde el cargador dinámico los busca)
 mkdir -p "$PACKAGE_DIR/usr/lib"
 cd "$PACKAGE_DIR/usr/lib"
 ln -sf /usr/local/lib/libncursesw.so.6 libtinfo.so.6
 ln -sf /usr/local/lib/libncursesw.so.6 libncurses.so.6
+
+# Y también aseguramos que estén en /usr/local/lib
+mkdir -p "$PACKAGE_DIR/usr/local/lib"
+cd "$PACKAGE_DIR/usr/local/lib"
+ln -sf libncursesw.so.6 libtinfo.so.6
+ln -sf libncursesw.so.6 libncurses.so.6
+
 cd - > /dev/null
 
 # ============================================
