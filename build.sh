@@ -102,33 +102,54 @@ echo -e "\n${YELLOW}[5/8] Compilando Nano...${NC}"
 make -j$(nproc)
 
 # ============================================
-# [6/8] INSTALAR, ESTRIBAR Y CREAR ENLACES
+# [6/8] INSTALAR, ESTRIBAR Y COPIAR LIBRERÍA REAL
 # ============================================
-echo -e "\n${YELLOW}[6/8] Instalando, estripando y creando enlaces...${NC}"
+echo -e "\n${YELLOW}[6/8] Instalando, estripando y copiando librerías...${NC}"
 
-# 1. Borrado agresivo de la carpeta de instalación
+# 1. Limpieza profunda y creación del directorio
 rm -rf "$PACKAGE_DIR"
 mkdir -p "$PACKAGE_DIR"
 
-# 2. Instalar
+# 2. Instalar en el directorio temporal (esto genera los archivos en /usr/local/bin, etc.)
 make install-strip DESTDIR="$PACKAGE_DIR"
 
-# 3. Verificación de seguridad: ¿Dónde se instaló realmente?
-if [ ! -f "$PACKAGE_DIR/usr/local/bin/nano" ]; then
-    echo -e "${RED}¡ERROR FATAL! El binario no se instaló en /usr/local/bin/${NC}"
-    echo -e "${YELLOW}Contenido de la carpeta de instalación:${NC}"
-    find "$PACKAGE_DIR" -type f | head -n 20
-    exit 1
+# 3. Copiar el archivo de configuración de ejemplo
+mkdir -p "$PACKAGE_DIR/usr/local/share/nano"
+cp doc/sample.nanorc "$PACKAGE_DIR/usr/local/share/nano/nanorc" 2>/dev/null || true
+
+# 4. Estripar (limpiar) el binario principal y otras librerías ELF
+if [ -f "$PACKAGE_DIR/usr/local/bin/nano" ]; then
+    strip "$PACKAGE_DIR/usr/local/bin/nano"
 fi
-
-# 4. Crear el enlace mágico en /usr/lib
-mkdir -p "$PACKAGE_DIR/usr/lib"
-cd "$PACKAGE_DIR/usr/lib"
-ln -sf /usr/local/lib/libncursesw.so.6 libtinfo.so.6
-cd - > /dev/null
-
-# 5. Estripar
 find "$PACKAGE_DIR" -type f -exec file {} \; 2>/dev/null | grep 'ELF' | awk -F: '{print $1}' | xargs strip 2>/dev/null || true
+
+# ============================================
+# SOLUCIÓN DEFINITIVA: Copiar la librería real de 32 bits
+# ============================================
+echo -e "${YELLOW}Copiando librería ncursesw de 32 bits...${NC}"
+mkdir -p "$PACKAGE_DIR/usr/local/lib"
+
+# Buscar la librería de 32 bits en Fedora (suele estar en /usr/lib/)
+NCURSES_LIB=$(find /usr/lib -name "libncursesw.so.6*" 2>/dev/null | head -n 1)
+
+if [ -n "$NCURSES_LIB" ]; then
+    echo -e "${GREEN}✓ Copiando $NCURSES_LIB al paquete...${NC}"
+    
+    # Copiar el archivo real (usando -L para seguir enlaces simbólicos y copiar el archivo físico)
+    cp -L "$NCURSES_LIB" "$PACKAGE_DIR/usr/local/lib/libncursesw.so.6"
+    
+    # Crear los enlaces de libtinfo y libncurses apuntando a la copia local
+    cd "$PACKAGE_DIR/usr/local/lib"
+    ln -sf libncursesw.so.6 libtinfo.so.6
+    ln -sf libncursesw.so.6 libncurses.so.6
+    cd - > /dev/null
+    
+    echo -e "${GREEN}✓ Enlaces creados en el paquete${NC}"
+else
+    echo -e "${RED}⚠ No se encontró libncursesw.so.6 de 32 bits en Fedora.${NC}"
+    echo -e "${YELLOW}Verifica con: find /usr/lib -name 'libncursesw.so.6*'${NC}"
+fi
+# ============================================
 
 # ============================================
 # [7/8] CREAR METADATOS
