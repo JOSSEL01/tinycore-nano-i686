@@ -104,7 +104,7 @@ make -j$(nproc)
 # ============================================
 # [6/8] INSTALAR, ESTRIBAR Y CREAR ENLACES
 # ============================================
-echo -e "\n${YELLOW}[6/8] Instalando, estripando y copiando librerías...${NC}"
+echo -e "\n${YELLOW}[6/8] Instalando, estripando y creando enlaces...${NC}"
 rm -rf "$PACKAGE_DIR"
 make install-strip DESTDIR="$PACKAGE_DIR"
 
@@ -116,26 +116,14 @@ if [ -f "$PACKAGE_DIR/usr/local/bin/nano" ]; then
 fi
 find "$PACKAGE_DIR" -type f -exec file {} \; 2>/dev/null | grep 'ELF' | awk -F: '{print $1}' | xargs strip 2>/dev/null || true
 
-# --- SOLUCIÓN DEFINITIVA ---
-# Copiar la librería real de ncursesw al paquete de Nano
-mkdir -p "$PACKAGE_DIR/usr/local/lib"
-
-# Buscar la librería en el sistema de compilación (Fedora)
-# Puede estar en /usr/lib/ o /usr/lib64/
-NCURSES_LIB=$(find /usr/lib /usr/lib64 -name "libncursesw.so.6*" 2>/dev/null | head -n 1)
-
-if [ -n "$NCURSES_LIB" ]; then
-    echo -e "${GREEN}✓ Copiando $NCURSES_LIB al paquete...${NC}"
-    cp "$NCURSES_LIB" "$PACKAGE_DIR/usr/local/lib/libncursesw.so.6"
-    # Crear el enlace libtinfo apuntando a la copia local
-    cd "$PACKAGE_DIR/usr/local/lib"
-    ln -sf libncursesw.so.6 libtinfo.so.6
-    ln -sf libncursesw.so.6 libncurses.so.6
-    cd - > /dev/null
-else
-    echo -e "${RED}⚠ No se encontró libncursesw.so.6 en el sistema.${NC}"
-fi
-# ---------------------------
+# --- SOLUCIÓN DEFINITIVA PARA TINY CORE ---
+# Crear el enlace en /usr/lib (donde el cargador dinámico busca por defecto)
+mkdir -p "$PACKAGE_DIR/usr/lib"
+cd "$PACKAGE_DIR/usr/lib"
+ln -sf /usr/local/lib/libncursesw.so.6 libtinfo.so.6
+ln -sf /usr/local/lib/libncursesw.so.6 libncurses.so.6
+cd - > /dev/null
+# ------------------------------------------
 
 # ============================================
 # [7/8] CREAR METADATOS
