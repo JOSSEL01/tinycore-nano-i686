@@ -1,6 +1,5 @@
-usr/local/lib/libncurses.so.6
-usr/local/lib/libtinfo.so.6
-usr/local/lib/libncursesw.so.6
+usr/lib/libncurses.so.6
+usr/lib/libtinfo.so.6
 usr/local/bin/rnano
 usr/local/bin/nano
 usr/local/share/nano.tcz.info
