@@ -102,9 +102,9 @@ echo -e "\n${YELLOW}[5/8] Compilando Nano...${NC}"
 make -j$(nproc)
 
 # ============================================
-# [6/8] INSTALAR Y ESTRIBAR
+# [6/8] INSTALAR, ESTRIBAR Y CREAR ENLACES
 # ============================================
-echo -e "\n${YELLOW}[6/8] Instalando y estripando...${NC}"
+echo -e "\n${YELLOW}[6/8] Instalando, estripando y creando enlaces...${NC}"
 rm -rf "$PACKAGE_DIR"
 make install-strip DESTDIR="$PACKAGE_DIR"
 
@@ -115,6 +115,11 @@ if [ -f "$PACKAGE_DIR/usr/local/bin/nano" ]; then
     strip "$PACKAGE_DIR/usr/local/bin/nano"
 fi
 find "$PACKAGE_DIR" -type f -exec file {} \; 2>/dev/null | grep 'ELF' | awk -F: '{print $1}' | xargs strip 2>/dev/null || true
+
+# MAGIA: Crear enlaces simbólicos dentro del paquete para que funcione en Tiny Core
+mkdir -p "$PACKAGE_DIR/usr/local/lib"
+ln -sf /usr/local/lib/libncursesw.so.6 "$PACKAGE_DIR/usr/local/lib/libtinfo.so.6"
+ln -sf /usr/local/lib/libncursesw.so.6 "$PACKAGE_DIR/usr/local/lib/libncurses.so.6"
 
 # ============================================
 # [7/8] CREAR METADATOS

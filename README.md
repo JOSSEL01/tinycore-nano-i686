@@ -29,8 +29,8 @@ Extensión `.tcz` de **GNU nano 9.3** compilada para **Tiny Core Linux 17.0 (i68
 - ✅ GNU nano **v9.3** (última versión estable)
 - ✅ Compilado para **i686 (32 bits)**
 - ✅ Compatible con **ncursesw** (soporte UTF-8)
+- ✅ Incluye enlaces simbólicos para `libtinfo` (soluciona error de librerías)
 - ✅ Binario **estripado** para reducir tamaño
-- ✅ Incluye `nanorc` de ejemplo
 
 ---
 
@@ -117,21 +117,13 @@ which nano
 
 ## 🐛 Solución de problemas
 
-### Error: `nano: error while loading shared libraries: libncurses.so.6`
+### Error: `nano: error while loading shared libraries: libtinfo.so.6`
 
-**Causa:** El sistema solo tiene `libncursesw.so.6`, no `libncurses.so.6`.
+**Causa:** El sistema busca `libtinfo` pero el paquete incluye los enlaces para que funcione con `libncursesw`.
 
-**Solución:**
+**Solución:** Este paquete `.tcz` ya incluye los enlaces simbólicos necesarios (`libtinfo.so.6` -> `libncursesw.so.6`). Si el error persiste, asegúrate de tener instalado `ncursesw.tcz`:
 ```bash
 tce-load -wi ncursesw
-```
-
-### Error: `nano: command not found`
-
-**Solución:**
-```bash
-tce-load -i nano-9.3
-which nano
 ```
 
 ---
@@ -145,7 +137,7 @@ chmod +x build.sh
 ./build.sh
 ```
 
-El script buscará y compilará automáticamente la última versión de Nano.
+El script buscará y compilará automáticamente la última versión de Nano e incluirá los enlaces simbólicos necesarios.
 
 ---
 
