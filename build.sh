@@ -102,7 +102,7 @@ echo -e "\n${YELLOW}[5/8] Compilando Nano...${NC}"
 make -j$(nproc)
 
 # ============================================
-# [6/8] INSTALAR, ESTRIBAR Y CREAR ENLACES
+# [6/8] INSTALAR, ESTRIBAR Y CREAR ENLACES (CORREGIDO)
 # ============================================
 echo -e "\n${YELLOW}[6/8] Instalando, estripando y creando enlaces...${NC}"
 rm -rf "$PACKAGE_DIR"
@@ -116,10 +116,19 @@ if [ -f "$PACKAGE_DIR/usr/local/bin/nano" ]; then
 fi
 find "$PACKAGE_DIR" -type f -exec file {} \; 2>/dev/null | grep 'ELF' | awk -F: '{print $1}' | xargs strip 2>/dev/null || true
 
-# MAGIA: Crear enlaces simbólicos dentro del paquete para que funcione en Tiny Core
+# --- SOLUCIÓN PARA TINY CORE ---
 mkdir -p "$PACKAGE_DIR/usr/local/lib"
-ln -sf /usr/local/lib/libncursesw.so.6 "$PACKAGE_DIR/usr/local/lib/libtinfo.so.6"
-ln -sf /usr/local/lib/libncursesw.so.6 "$PACKAGE_DIR/usr/local/lib/libncurses.so.6"
+cd "$PACKAGE_DIR/usr/local/lib"
+
+# 1. Crear enlaces relativos (así no dependen de la ruta absoluta de Fedora)
+ln -sf libncursesw.so.6 libtinfo.so.6
+ln -sf libncursesw.so.6 libncurses.so.6
+
+# 2. Opcional: Copiar la librería real al paquete (por si Tiny Core no la encuentra)
+# cp /usr/lib/libncursesw.so.6* . 2>/dev/null  cp /usr/lib64/libncursesw.so.6* . 2>/dev/null  true
+
+cd - > /dev/null
+# -------------------------------
 
 # ============================================
 # [7/8] CREAR METADATOS
